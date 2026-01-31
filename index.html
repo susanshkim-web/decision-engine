@@ -90,20 +90,22 @@
 
         .category-tabs {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             justify-content: center;
         }
 
         .tab {
-            padding: 12px 20px;
+            padding: 12px 16px;
             background: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: #fff;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.2s;
             backdrop-filter: blur(10px);
+            white-space: nowrap;
         }
 
         .tab.active {
@@ -214,7 +216,7 @@
         .category-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 8px;
         }
 
         .category-buttons .delete {
@@ -222,15 +224,16 @@
         }
 
         .category-btn {
-            padding: 15px;
+            padding: 15px 10px;
             background: rgba(255, 255, 255, 0.3);
             border: 2px solid rgba(102, 126, 234, 0.5);
             color: #667eea;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             transition: all 0.2s;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .category-btn:active {
@@ -515,11 +518,16 @@ One thought per line."></textarea>
             loadData() {
                 const saved = localStorage.getItem('decisionEngineData');
                 if (saved) {
-                    this.data = JSON.parse(saved);
-                    // Ensure longterm category exists for users with old data
-                    if (!this.data.longterm) {
-                        this.data.longterm = [];
-                    }
+                    const loadedData = JSON.parse(saved);
+                    // Merge loaded data with default structure to ensure all categories exist
+                    this.data = {
+                        quick: loadedData.quick || [],
+                        work: loadedData.work || [],
+                        personal: loadedData.personal || [],
+                        longterm: loadedData.longterm || []
+                    };
+                    // Save back to ensure longterm is persisted
+                    this.saveData();
                 }
             },
 

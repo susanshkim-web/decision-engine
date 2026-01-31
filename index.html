@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Decision Engine">
     <meta name="theme-color" content="#667eea">
     <title>Decision Engine</title>
     <link rel="manifest" href="manifest.json">
@@ -216,6 +217,10 @@
             gap: 10px;
         }
 
+        .category-buttons .delete {
+            grid-column: 1 / -1;
+        }
+
         .category-btn {
             padding: 15px;
             background: rgba(255, 255, 255, 0.3);
@@ -420,6 +425,9 @@
                 <button class="tab" onclick="app.showCategory('personal')">
                     PERSONAL <span class="tab-count" id="personalCount">(0/10)</span>
                 </button>
+                <button class="tab" onclick="app.showCategory('longterm')">
+                    LONGTERM <span class="tab-count" id="longtermCount">(0/25)</span>
+                </button>
             </div>
         </div>
 
@@ -450,6 +458,7 @@ One thought per line."></textarea>
                     <button class="category-btn" onclick="app.categorizeThought('quick')">QUICK</button>
                     <button class="category-btn" onclick="app.categorizeThought('work')">WORK</button>
                     <button class="category-btn" onclick="app.categorizeThought('personal')">PERSONAL</button>
+                    <button class="category-btn" onclick="app.categorizeThought('longterm')">LONGTERM</button>
                     <button class="category-btn delete" onclick="app.deleteThought()">DELETE</button>
                 </div>
             </div>
@@ -490,7 +499,8 @@ One thought per line."></textarea>
             data: {
                 quick: [],
                 work: [],
-                personal: []
+                personal: [],
+                longterm: []
             },
             currentThoughts: [],
             currentThoughtIndex: 0,
@@ -506,6 +516,10 @@ One thought per line."></textarea>
                 const saved = localStorage.getItem('decisionEngineData');
                 if (saved) {
                     this.data = JSON.parse(saved);
+                    // Ensure longterm category exists for users with old data
+                    if (!this.data.longterm) {
+                        this.data.longterm = [];
+                    }
                 }
             },
 
@@ -515,20 +529,21 @@ One thought per line."></textarea>
             },
 
             updateCounts() {
-                const updateCount = (category, elementId) => {
+                const updateCount = (category, elementId, maxItems = 10) => {
                     const count = this.data[category].filter(item => !item.completed).length;
                     const element = document.getElementById(elementId);
-                    element.textContent = `(${count}/10)`;
-                    if (count >= 9) {
+                    element.textContent = `(${count}/${maxItems})`;
+                    if (count >= maxItems - 1) {
                         element.classList.add('warning');
                     } else {
                         element.classList.remove('warning');
                     }
                 };
 
-                updateCount('quick', 'quickCount');
-                updateCount('work', 'workCount');
-                updateCount('personal', 'personalCount');
+                updateCount('quick', 'quickCount', 10);
+                updateCount('work', 'workCount', 10);
+                updateCount('personal', 'personalCount', 10);
+                updateCount('longterm', 'longtermCount', 25);
             },
 
             showHome() {
@@ -577,12 +592,13 @@ One thought per line."></textarea>
             },
 
             categorizeThought(category) {
+                const maxItems = category === 'longterm' ? 25 : 10;
                 const activeItems = this.data[category].filter(item => !item.completed);
                 
-                if (activeItems.length >= 10) {
+                if (activeItems.length >= maxItems) {
                     this.showModal(
                         `${category.toUpperCase()} is full`,
-                        `You have 10 items in ${category.toUpperCase()}. Clear space or delete this thought.`,
+                        `You have ${maxItems} items in ${category.toUpperCase()}. Clear space or delete this thought.`,
                         () => {
                             this.deleteThought();
                         }
@@ -638,9 +654,10 @@ One thought per line."></textarea>
                 const items = this.data[this.currentCategory];
                 const activeItems = items.filter(item => !item.completed);
                 const listEl = document.getElementById('itemList');
+                const maxItems = this.currentCategory === 'longterm' ? 25 : 10;
                 
                 document.getElementById('categoryCountDisplay').textContent = 
-                    `(${activeItems.length}/10)`;
+                    `(${activeItems.length}/${maxItems})`;
 
                 if (activeItems.length === 0) {
                     listEl.innerHTML = '<div class="empty-state">Nothing here. Breathe.</div>';
@@ -694,9 +711,10 @@ One thought per line."></textarea>
             },
 
             quickAdd() {
+                const maxItems = this.currentCategory === 'longterm' ? 25 : 10;
                 const activeItems = this.data[this.currentCategory].filter(item => !item.completed);
                 
-                if (activeItems.length >= 10) {
+                if (activeItems.length >= maxItems) {
                     alert(`${this.currentCategory.toUpperCase()} is full. Clear space first.`);
                     return;
                 }
@@ -732,10 +750,7 @@ One thought per line."></textarea>
             app.init();
         });
 
-        // Register service worker for PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+        // Service worker removed for better iOS compatibility
     </script>
 </body>
 </html>

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <title>Decision Engine</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Opening Screen */
+        .opening-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 80vh;
+        }
+
+        .quote {
+            font-size: 24px;
+            line-height: 1.4;
+            margin-bottom: 60px;
+            text-align: center;
+            font-weight: 300;
+            font-style: italic;
+            opacity: 0.9;
+            padding: 0 20px;
+        }
+
+        .main-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            padding: 20px;
+            font-size: 18px;
+            border: 2px solid #fff;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn:active {
+            background: #fff;
+            color: #667eea;
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary:active {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            transform: scale(0.98);
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+
+        .tab.active {
+            background: #fff;
+            color: #667eea;
+            border-color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tab-count {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .tab-count.warning {
+            color: #ffd700;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Capture Mode */
+        .capture-screen {
+            display: none;
+        }
+
+        .capture-screen.active {
+            display: block;
+        }
+
+        .back-btn {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+        }
+
+        .back-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .capture-label {
+            font-size: 18px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .capture-input {
+            width: 100%;
+            min-height: 300px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            color: #667eea;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        .capture-input:focus {
+            outline: none;
+            border-color: #fff;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .capture-input::placeholder {
+            color: rgba(102, 126, 234, 0.5);
+        }
+
+        /* Processing Mode */
+        .processing-screen {
+            display: none;
+        }
+
+        .processing-screen.active {
+            display: block;
+        }
+
+        .thought-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .thought-counter {
+            font-size: 14px;
+            color: rgba(102, 126, 234, 0.7);
+            margin-bottom: 15px;
+        }
+
+        .thought-text {
+            font-size: 20px;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            color: #667eea;
+        }
+
+        .category-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .category-btn {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .category-btn:active {
+            background: #667eea;
+            color: #fff;
+            transform: scale(0.98);
+        }
+
+        .category-btn.delete {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .category-btn.delete:active {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        /* Category View */
+        .category-screen {
+            display: none;
+        }
+
+        .category-screen.active {
+            display: block;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .category-title {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .category-count {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .item-list {
+            margin-bottom: 30px;
+        }
+
+        .item {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .item.completed {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #667eea;
+            border-radius: 50%;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .checkbox.checked {
+            background: #667eea;
+        }
+
+        .item-text {
+            flex: 1;
+            font-size: 16px;
+            color: #667eea;
+        }
+
+        .delete-btn {
+            color: #ff6b6b;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+        }
+
+        .bottom-actions {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .bottom-actions .btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(102, 126, 234, 0.95);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .modal-message {
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            color: #667eea;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Opening Screen -->
+        <div id="openingScreen" class="opening-screen">
+            <div class="quote" id="quote">
+                "Permission to let unimportant things disappear"
+            </div>
+            
+            <div class="main-buttons">
+                <button class="btn btn-primary" onclick="app.showCapture()">+ CAPTURE</button>
+                <button class="btn" onclick="app.showCategory('quick')">QUICK LIST</button>
+            </div>
+
+            <div class="category-tabs">
+                <button class="tab" onclick="app.showCategory('quick')">
+                    QUICK <span class="tab-count" id="quickCount">(0/10)</span>
+                </button>
+                <button class="tab" onclick="app.showCategory('work')">
+                    WORK <span class="tab-count" id="workCount">(0/10)</span>
+                </button>
+                <button class="tab" onclick="app.showCategory('personal')">
+                    PERSONAL <span class="tab-count" id="personalCount">(0/10)</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Capture Screen -->
+        <div id="captureScreen" class="capture-screen">
+            <button class="back-btn" onclick="app.showHome()">← Back</button>
+            
+            <div class="capture-label">What's running through your head?</div>
+            
+            <textarea 
+                id="captureInput" 
+                class="capture-input" 
+                placeholder="Type everything as it comes...
+One thought per line."></textarea>
+            
+            <button class="btn btn-primary" onclick="app.startProcessing()">PROCESS</button>
+        </div>
+
+        <!-- Processing Screen -->
+        <div id="processingScreen" class="processing-screen">
+            <button class="back-btn" onclick="app.cancelProcessing()">← Cancel</button>
+            
+            <div class="thought-card">
+                <div class="thought-counter" id="thoughtCounter">Thought 1 of 1</div>
+                <div class="thought-text" id="thoughtText"></div>
+                
+                <div class="category-buttons">
+                    <button class="category-btn" onclick="app.categorizeThought('quick')">QUICK</button>
+                    <button class="category-btn" onclick="app.categorizeThought('work')">WORK</button>
+                    <button class="category-btn" onclick="app.categorizeThought('personal')">PERSONAL</button>
+                    <button class="category-btn delete" onclick="app.deleteThought()">DELETE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Screen -->
+        <div id="categoryScreen" class="category-screen">
+            <button class="back-btn" onclick="app.showHome()">← Back</button>
+            
+            <div class="category-header">
+                <div class="category-title" id="categoryTitle">QUICK</div>
+                <div class="category-count" id="categoryCountDisplay">(0/10)</div>
+            </div>
+
+            <div id="itemList" class="item-list"></div>
+
+            <div class="bottom-actions">
+                <button class="btn" onclick="app.quickAdd()">+ ADD</button>
+                <button class="btn" onclick="app.clearCompleted()">CLEAR COMPLETED</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">Confirm</div>
+            <div class="modal-message" id="modalMessage">Are you sure?</div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="app.closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="modalConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const app = {
+            data: {
+                quick: [],
+                work: [],
+                personal: []
+            },
+            currentThoughts: [],
+            currentThoughtIndex: 0,
+            currentCategory: 'quick',
+            
+            init() {
+                this.loadData();
+                this.updateCounts();
+                this.showHome();
+            },
+
+            loadData() {
+                const saved = localStorage.getItem('decisionEngineData');
+                if (saved) {
+                    this.data = JSON.parse(saved);
+                }
+            },
+
+            saveData() {
+                localStorage.setItem('decisionEngineData', JSON.stringify(this.data));
+                this.updateCounts();
+            },
+
+            updateCounts() {
+                const updateCount = (category, elementId) => {
+                    const count = this.data[category].filter(item => !item.completed).length;
+                    const element = document.getElementById(elementId);
+                    element.textContent = `(${count}/10)`;
+                    if (count >= 9) {
+                        element.classList.add('warning');
+                    } else {
+                        element.classList.remove('warning');
+                    }
+                };
+
+                updateCount('quick', 'quickCount');
+                updateCount('work', 'workCount');
+                updateCount('personal', 'personalCount');
+            },
+
+            showHome() {
+                document.getElementById('openingScreen').style.display = 'flex';
+                document.getElementById('captureScreen').classList.remove('active');
+                document.getElementById('processingScreen').classList.remove('active');
+                document.getElementById('categoryScreen').classList.remove('active');
+            },
+
+            showCapture() {
+                document.getElementById('openingScreen').style.display = 'none';
+                document.getElementById('captureScreen').classList.add('active');
+                document.getElementById('captureInput').value = '';
+                document.getElementById('captureInput').focus();
+            },
+
+            startProcessing() {
+                const input = document.getElementById('captureInput').value.trim();
+                if (!input) {
+                    alert('Nothing to process!');
+                    return;
+                }
+
+                this.currentThoughts = input.split('\n').filter(line => line.trim()).map(line => line.trim());
+                
+                if (this.currentThoughts.length === 0) {
+                    alert('Nothing to process!');
+                    return;
+                }
+
+                this.currentThoughtIndex = 0;
+                this.showProcessingScreen();
+            },
+
+            showProcessingScreen() {
+                document.getElementById('captureScreen').classList.remove('active');
+                document.getElementById('processingScreen').classList.add('active');
+                this.displayCurrentThought();
+            },
+
+            displayCurrentThought() {
+                const thought = this.currentThoughts[this.currentThoughtIndex];
+                document.getElementById('thoughtCounter').textContent = 
+                    `Thought ${this.currentThoughtIndex + 1} of ${this.currentThoughts.length}`;
+                document.getElementById('thoughtText').textContent = thought;
+            },
+
+            categorizeThought(category) {
+                const activeItems = this.data[category].filter(item => !item.completed);
+                
+                if (activeItems.length >= 10) {
+                    this.showModal(
+                        `${category.toUpperCase()} is full`,
+                        `You have 10 items in ${category.toUpperCase()}. Clear space or delete this thought.`,
+                        () => {
+                            this.deleteThought();
+                        }
+                    );
+                    return;
+                }
+
+                const thought = this.currentThoughts[this.currentThoughtIndex];
+                this.data[category].push({
+                    text: thought,
+                    completed: false,
+                    created: Date.now()
+                });
+                this.saveData();
+                this.nextThought();
+            },
+
+            deleteThought() {
+                this.closeModal();
+                this.nextThought();
+            },
+
+            nextThought() {
+                this.currentThoughtIndex++;
+                
+                if (this.currentThoughtIndex >= this.currentThoughts.length) {
+                    this.finishProcessing();
+                } else {
+                    this.displayCurrentThought();
+                }
+            },
+
+            finishProcessing() {
+                alert('All thoughts processed!');
+                this.showHome();
+            },
+
+            cancelProcessing() {
+                if (confirm('Cancel processing? Unsaved thoughts will be lost.')) {
+                    this.showHome();
+                }
+            },
+
+            showCategory(category) {
+                this.currentCategory = category;
+                document.getElementById('openingScreen').style.display = 'none';
+                document.getElementById('categoryScreen').classList.add('active');
+                document.getElementById('categoryTitle').textContent = category.toUpperCase();
+                this.renderCategoryItems();
+            },
+
+            renderCategoryItems() {
+                const items = this.data[this.currentCategory];
+                const activeItems = items.filter(item => !item.completed);
+                const listEl = document.getElementById('itemList');
+                
+                document.getElementById('categoryCountDisplay').textContent = 
+                    `(${activeItems.length}/10)`;
+
+                if (activeItems.length === 0) {
+                    listEl.innerHTML = '<div class="empty-state">Nothing here. Breathe.</div>';
+                    return;
+                }
+
+                listEl.innerHTML = activeItems.map((item, index) => `
+                    <div class="item ${item.completed ? 'completed' : ''}">
+                        <div class="checkbox ${item.completed ? 'checked' : ''}" 
+                             onclick="app.toggleItem(${index})"></div>
+                        <div class="item-text">${item.text}</div>
+                        <div class="delete-btn" onclick="app.deleteItem(${index})">✕</div>
+                    </div>
+                `).join('');
+            },
+
+            toggleItem(index) {
+                const items = this.data[this.currentCategory].filter(item => !item.completed);
+                items[index].completed = !items[index].completed;
+                this.saveData();
+                
+                if (items[index].completed) {
+                    setTimeout(() => {
+                        this.renderCategoryItems();
+                    }, 300);
+                } else {
+                    this.renderCategoryItems();
+                }
+            },
+
+            deleteItem(index) {
+                const items = this.data[this.currentCategory].filter(item => !item.completed);
+                const actualIndex = this.data[this.currentCategory].indexOf(items[index]);
+                
+                this.showModal(
+                    'Delete this?',
+                    'This won\'t come back.',
+                    () => {
+                        this.data[this.currentCategory].splice(actualIndex, 1);
+                        this.saveData();
+                        this.renderCategoryItems();
+                        this.closeModal();
+                    }
+                );
+            },
+
+            clearCompleted() {
+                this.data[this.currentCategory] = this.data[this.currentCategory].filter(item => !item.completed);
+                this.saveData();
+                this.renderCategoryItems();
+            },
+
+            quickAdd() {
+                const activeItems = this.data[this.currentCategory].filter(item => !item.completed);
+                
+                if (activeItems.length >= 10) {
+                    alert(`${this.currentCategory.toUpperCase()} is full. Clear space first.`);
+                    return;
+                }
+
+                const text = prompt('Quick add:');
+                if (text && text.trim()) {
+                    this.data[this.currentCategory].push({
+                        text: text.trim(),
+                        completed: false,
+                        created: Date.now()
+                    });
+                    this.saveData();
+                    this.renderCategoryItems();
+                }
+            },
+
+            showModal(title, message, onConfirm) {
+                document.getElementById('modalTitle').textContent = title;
+                document.getElementById('modalMessage').textContent = message;
+                document.getElementById('modal').classList.add('active');
+                
+                const confirmBtn = document.getElementById('modalConfirm');
+                confirmBtn.onclick = onConfirm;
+            },
+
+            closeModal() {
+                document.getElementById('modal').classList.remove('active');
+            }
+        };
+
+        // Initialize app when page loads
+        window.addEventListener('load', () => {
+            app.init();
+        });
+
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>

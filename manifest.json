@@ -2,7 +2,7 @@
   "name": "Decision Engine",
   "short_name": "Decision",
   "description": "Ruthless thought capture and prioritization",
-  "start_url": "/",
+  "start_url": "/decision-engine/",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
